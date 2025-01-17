@@ -1,11 +1,12 @@
 'use client';
 
-import { TextField, Button, Typography, Box, Link } from '@mui/material';
+import { TextField, Button, Typography, Box } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { RegisterInputs, registerSchema } from './_register.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRegisterUserMutation } from './_register.api';
+import Link from '@/app/components/Link';
 
 export default function Register() {
   const [registerUser, { isLoading }] = useRegisterUserMutation();
@@ -130,10 +131,7 @@ export default function Register() {
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant="body2">
-            Have an account?{' '}
-            <Link href="/" underline="hover" sx={{ fontWeight: 'medium' }}>
-              Sign in
-            </Link>
+            Have an account? <Link href="login">Sign in</Link>
           </Typography>
         </Box>
       </Box>
