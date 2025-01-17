@@ -20,8 +20,7 @@ export default function Register() {
 
   const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
     try {
-      const result = await registerUser(data);
-      console.log({ result });
+      await registerUser(data);
     } catch (err) {
       console.error('Failed to register:', err);
     }
@@ -124,6 +123,7 @@ export default function Register() {
           variant="contained"
           sx={{ mt: 3, mb: 2, py: 1.5 }}
           size="large"
+          disabled={isLoading}
         >
           {isLoading ? 'Registering...' : 'Register'}
         </Button>
