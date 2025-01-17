@@ -5,8 +5,11 @@ import Grid from '@mui/material/Grid2';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { RegisterInputs, registerSchema } from './_register.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRegisterUserMutation } from './_register.api';
 
 export default function Register() {
+  const [registerUser, { isLoading }] = useRegisterUserMutation();
+
   const {
     register,
     handleSubmit,
@@ -15,8 +18,13 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit: SubmitHandler<RegisterInputs> = (data) => {
-    console.log('Form Data:', data);
+  const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
+    try {
+      const result = await registerUser(data);
+      console.log({ result });
+    } catch (err) {
+      console.error('Failed to register:', err);
+    }
   };
 
   return (
@@ -117,7 +125,7 @@ export default function Register() {
           sx={{ mt: 3, mb: 2, py: 1.5 }}
           size="large"
         >
-          REGISTER NOW
+          {isLoading ? 'Registering...' : 'Register'}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
