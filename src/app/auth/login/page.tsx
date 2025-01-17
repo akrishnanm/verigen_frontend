@@ -6,7 +6,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLoginUserMutation } from './_login.api';
 import { LoginInputs, loginSchema } from './_login.schema';
-import Link from '@/app/components/Link';
+import Link from '@/components/Link';
 
 export default function Login() {
   const [loginUser, { isLoading }] = useLoginUserMutation();

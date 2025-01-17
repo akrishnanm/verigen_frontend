@@ -6,9 +6,12 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { RegisterInputs, registerSchema } from './_register.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRegisterUserMutation } from './_register.api';
-import Link from '@/app/components/Link';
+import Link from '@/components/Link';
+import { useRouter } from 'next/navigation';
 
 export default function Register() {
+  const router = useRouter();
+
   const [registerUser, { isLoading }] = useRegisterUserMutation();
 
   const {
@@ -22,6 +25,7 @@ export default function Register() {
   const onSubmit: SubmitHandler<RegisterInputs> = async (data) => {
     try {
       await registerUser(data);
+      router.push('login');
     } catch (err) {
       console.error('Failed to register:', err);
     }
