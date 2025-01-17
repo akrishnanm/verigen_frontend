@@ -3,7 +3,7 @@
 import { TextField, Button, Typography, Box, Link } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { RegisterInputs, registerSchema } from './_schema';
+import { RegisterInputs, registerSchema } from './_register.schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 export default function Register() {
