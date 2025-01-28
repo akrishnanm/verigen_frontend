@@ -7,10 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForgotPasswordMutation } from './_forgot_password.api';
 import { ForgotPasswordInputs, forgotPasswordSchema } from './_forgot_password.schema';
 import Link from '@/components/Link';
+import { useRouter } from 'next/navigation';
 
 export default function ForgotPassword() {
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
-
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -21,7 +22,13 @@ export default function ForgotPassword() {
 
   const onSubmit: SubmitHandler<ForgotPasswordInputs> = async (data) => {
     try {
-      await forgotPassword(data);
+      const response = await forgotPassword(data).unwrap();
+      const securityQuestion = response.security_question;
+      const query = new URLSearchParams({
+        email: data.email,
+        security_question: securityQuestion,
+      }).toString();
+      router.push(`reset-password?${query}`);
     } catch (err) {
       console.error('Invalid email:', err);
     }

@@ -9,7 +9,7 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: async (args, api, extraOptions) => {
     const baseQuery = fetchBaseQuery({
-      baseUrl: 'http://127.0.0.1:8080',
+      baseUrl: 'http://127.0.0.1:8000',
     });
 
     const result = await baseQuery(args, api, extraOptions);
