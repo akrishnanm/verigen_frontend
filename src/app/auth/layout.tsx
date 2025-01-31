@@ -6,24 +6,30 @@ export default function RegisterLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 8 }}>
-        <Container maxWidth="sm">
-          <Box sx={{ mt: 8, mb: 4, position: 'relative' }}>
-            <Paper
-              elevation={3}
-              sx={{
-                p: 4,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              {children}
-            </Paper>
-          </Box>
-        </Container>
-      </Box>
-    </Container>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        backgroundColor: 'grey.100',
+        py: 4, // Extra padding for responsiveness
+      }}
+    >
+      <Container maxWidth="sm">
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          {children}
+        </Paper>
+      </Container>
+    </Box>
   );
 }
