@@ -1,19 +1,11 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import StoreProvider from './StoreProvider';
 import ToastProvider from '@/provider/ToastProvider';
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { baseLightTheme } from '@/utils/theme/DefaultColors';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -27,13 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body>
         <AppRouterCacheProvider>
-          <StoreProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </StoreProvider>
+          <ThemeProvider theme={baseLightTheme}>
+            <CssBaseline />
+            <StoreProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </StoreProvider>
+          </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
     </html>
