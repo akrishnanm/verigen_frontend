@@ -7,8 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLoginUserMutation } from './_login.api';
 import { LoginInputs, loginSchema } from './_login.schema';
 import Link from '@/components/Link';
+import { StorageUtil } from '@/utils/storage';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
+  const router = useRouter();
   const [loginUser, { isLoading }] = useLoginUserMutation();
 
   const {
@@ -21,7 +24,11 @@ export default function Login() {
 
   const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
     try {
-      await loginUser(data);
+      const {
+        data: { access_token },
+      } = await loginUser(data);
+      StorageUtil.set('accessToken', access_token);
+      router.push('/dashboard');
     } catch (err) {
       console.error('Failed to login:', err);
     }
