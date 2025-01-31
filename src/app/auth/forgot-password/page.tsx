@@ -4,45 +4,44 @@ import { TextField, Button, Typography, Box } from '@mui/material';
 import Grid from '@mui/material/Grid2';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useLoginUserMutation } from './_login.api';
-import { LoginInputs, loginSchema } from './_login.schema';
+import { useForgotPasswordMutation } from './_forgot_password.api';
+import { ForgotPasswordInputs, forgotPasswordSchema } from './_forgot_password.schema';
 import Link from '@/components/Link';
-import { StorageUtil } from '@/utils/storage';
 import { useRouter } from 'next/navigation';
 
-export default function Login() {
+export default function ForgotPassword() {
+  const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
   const router = useRouter();
-  const [loginUser, { isLoading }] = useLoginUserMutation();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginInputs>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<ForgotPasswordInputs>({
+    resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit: SubmitHandler<LoginInputs> = async (data) => {
+  const onSubmit: SubmitHandler<ForgotPasswordInputs> = async (data) => {
     try {
-      const {
-        data: { access_token },
-      } = await loginUser(data);
-      StorageUtil.set('accessToken', access_token);
-      router.push('/dashboard');
+      const response = await forgotPassword(data).unwrap();
+      const securityQuestion = response.security_question;
+      const query = new URLSearchParams({
+        email: data.email,
+        security_question: securityQuestion,
+      }).toString();
+      router.push(`reset-password?${query}`);
     } catch (err) {
-      console.error('Failed to login:', err);
+      console.error('Invalid email:', err);
     }
   };
 
   return (
     <>
       <Typography component="h1" variant="h4" sx={{ mb: 2 }}>
-        Login
+      Forgot Password 
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Please enter your details
+        {`No worries, we'll send you reset instructions.`}
       </Typography>
-
       <Box
         component="form"
         onSubmit={handleSubmit(onSubmit)}
@@ -62,26 +61,7 @@ export default function Login() {
               required
             />
           </Grid>
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              {...register('password')}
-              fullWidth
-              label="Password"
-              type="password"
-              placeholder="Enter password"
-              variant="outlined"
-              error={!!errors.password}
-              helperText={errors.password?.message}
-              required
-            />
-          </Grid>
         </Grid>
-
-        <Box sx={{ textAlign: 'right', mt: 2}}>
-        <Typography variant="body2">
-            <Link href="forgot-password ">Forgot password?</Link>
-          </Typography>
-        </Box>
 
         <Button
           type="submit"
@@ -91,13 +71,13 @@ export default function Login() {
           size="large"
           disabled={isLoading}
         >
-          {isLoading ? 'Logging In...' : 'Login'}
+          {isLoading ? 'Verifying...' : 'Proceed'}
         </Button>
 
         <Box sx={{ textAlign: 'center', mt: 2 }}>
           <Typography variant="body2">
-            {"Don't have an account? "}
-            <Link href="register">Sign Up</Link>
+            {"Remember your password? "}
+            <Link href="login">Sign in</Link>
           </Typography>
         </Box>
       </Box>
