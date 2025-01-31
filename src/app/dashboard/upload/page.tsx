@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
@@ -18,7 +18,6 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
 import { useUploadFileMutation } from './upload.api'; // Import the useUploadFileMutation hook
-
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -50,9 +49,7 @@ export default function FileUploadPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-    const [uploadFile] = useUploadFileMutation();
-  // const { user } = useAuth();
-  const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhcnNoYXNAb3QubmV0IiwibmFtZSI6IlZpc2h2aml0IiwiZXhwIjoxNzM4MjM3NTU2fQ.MAW43WnYTGn3Z7qtiAkA8ysoVh9KjqImv1VJOGJWtcg'; // Use the useAuth hook to get user data
+  const [uploadFile] = useUploadFileMutation();
 
   const theme = useMemo(
     () =>
@@ -87,29 +84,41 @@ export default function FileUploadPage() {
     }
   };
 
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      validateFile(selectedFile);
-    }
-  }, []);
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      if (selectedFile) {
+        validateFile(selectedFile);
+      }
+    },
+    []
+  );
 
-  const handleDragEnter = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsDragging(true);
-  }, []);
+  const handleDragEnter = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDragging(true);
+    },
+    []
+  );
 
-  const handleDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setIsDragging(false);
-  }, []);
+  const handleDragLeave = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsDragging(false);
+    },
+    []
+  );
 
-  const handleDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  }, []);
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    []
+  );
 
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -122,9 +131,11 @@ export default function FileUploadPage() {
   }, []);
 
   const handleUpload = useCallback(async () => {
-    if (file && accessToken) {
+    if (file) {
       try {
-        const response = await uploadFile({ file, token: accessToken }).unwrap();
+        const response = await uploadFile({
+          file,
+        }).unwrap();
         console.log('File uploaded successfully:', response);
         setSuccess('File uploaded successfully');
         setFile(null);
@@ -135,7 +146,7 @@ export default function FileUploadPage() {
     } else {
       setError('Please select a file before uploading');
     }
-  }, [file, accessToken, uploadFile]);
+  }, [file, uploadFile]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -146,11 +157,21 @@ export default function FileUploadPage() {
             onClick={toggleTheme}
             color="inherit"
             sx={{ position: 'absolute', top: -40, right: 0 }}
-            aria-label={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={
+              mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
+            }
           >
             {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
-          <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
             <Typography component="h1" variant="h4" sx={{ mb: 2 }}>
               Upload File
             </Typography>
@@ -165,11 +186,15 @@ export default function FileUploadPage() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 sx={{
-                  backgroundColor: isDragging ? 'action.hover' : 'background.paper',
+                  backgroundColor: isDragging
+                    ? 'action.hover'
+                    : 'background.paper',
                   mb: 2,
                 }}
               >
-                <CloudUploadIcon sx={{ fontSize: 48, mb: 2, color: 'primary.main' }} />
+                <CloudUploadIcon
+                  sx={{ fontSize: 48, mb: 2, color: 'primary.main' }}
+                />
                 <Typography variant="h6" gutterBottom>
                   Drag & Drop a file to upload
                 </Typography>
@@ -178,7 +203,11 @@ export default function FileUploadPage() {
                 </Typography>
                 <Button component="label" variant="contained" sx={{ mt: 2 }}>
                   Select File
-                  <VisuallyHiddenInput type="file" onChange={handleFileChange} accept=".v" />
+                  <VisuallyHiddenInput
+                    type="file"
+                    onChange={handleFileChange}
+                    accept=".v"
+                  />
                 </Button>
               </DropZone>
 
@@ -216,4 +245,3 @@ export default function FileUploadPage() {
     </ThemeProvider>
   );
 }
-
