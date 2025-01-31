@@ -5,14 +5,14 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { toast } from 'react-toastify';
 import { StorageUtil } from '@/utils/storage';
-
+const baseUrl = process.env.API_BASE_URL;
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: async (args, api, extraOptions) => {
     const token = StorageUtil.get('accessToken');
 
     const baseQuery = fetchBaseQuery({
-      baseUrl: 'http://127.0.0.1:8000',
+      baseUrl,
       prepareHeaders: (headers) => {
         if (token) {
           headers.set('Authorization', `Bearer ${token}`);
