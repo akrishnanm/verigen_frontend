@@ -5,7 +5,9 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { toast } from 'react-toastify';
 import { StorageUtil } from '@/utils/storage';
-const baseUrl = process.env.API_BASE_URL;
+
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: async (args, api, extraOptions) => {
