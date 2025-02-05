@@ -1,5 +1,5 @@
 'use client';
-
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,8 +20,11 @@ const fileSchema = z.object({
 });
 
 type FileFormValues = z.infer<typeof fileSchema>;
+interface UploadFormProps {
+  onFileUpload: (fileUrl: string) => void;
+}
 
-export default function UploadForm() {
+export default function UploadForm({ onFileUpload }: UploadFormProps) {
   const {
     register,
     handleSubmit,
@@ -31,17 +34,26 @@ export default function UploadForm() {
   });
 
   const [upload, { isLoading, isError, isSuccess }] = useUploadMutation();
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: FileFormValues) => {
+    const file = data.file[0];
+    if (file.name.endsWith('.v')) {
     const formData = new FormData();
-    formData.append('file', data.file[0]);
+    formData.append('file', file);
 
     try {
-      await upload(formData).unwrap();
+      const response = await upload(formData).unwrap();
+      const fileUrl = response.url; // Assuming the response contains the URL of the uploaded file
+      onFileUpload(fileUrl);
+      setError(null);
     } catch (error) {
       console.error('Upload failed:', error);
     }
-  };
+  } else {
+    setError('Invalid file type. Please upload a .v file.');
+  }
+};
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -51,6 +63,8 @@ export default function UploadForm() {
         register={register}
         error={errors.file?.message as string}
       />
+      
+      {error && <span className="text-red-500">{error}</span>}
 
       <button
         type="submit"
