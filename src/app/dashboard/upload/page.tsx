@@ -7,19 +7,15 @@ import FileProcessing from './(components)/FileProcessing';
 
 const Upload = () => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-  
-  const handleFileUpload = (fileUrl: string) => {
-    setUploadedFiles((prevFiles) => {
-      const newFiles = [fileUrl, ...prevFiles];
-      return newFiles.slice(0, 10); // Keep only the 10 most recent files
-    });
+  const [uploadedFiles, setUploadedFiles] = useState<{ filename: string; url: string; timestamp: string }[]>([]);
+
+  const handleFileUpload = (files: { filename: string; url: string; timestamp: string }[]) => {
+    setUploadedFiles(files);
   };
 
   const handleFileSelect = (fileUrl: string) => {
     setSelectedFile(fileUrl);
   };
-
 
   return (
     <Container maxWidth="lg">
@@ -41,7 +37,7 @@ const Upload = () => {
         </Box>
       </Box>
     </Container>
-);
+  );
 };
 
 export default Upload;

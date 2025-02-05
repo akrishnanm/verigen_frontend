@@ -11,13 +11,16 @@ import {
 import UploadForm from "./UploadForm";
 
 interface FileListProps {
-    files: string[];
-    onFileSelect: (fileUrl: string) => void;
-    onFileUpload: (fileName: string) => void;
-  }
-export default function FileList({onFileSelect, files}: FileListProps) {
+  files: { filename: string; url: string; timestamp: string }[];
+  onFileSelect: (fileUrl: string) => void;
+  onFileUpload: (files: { filename: string; url: string; timestamp: string }[]) => void;
+}
 
-return (
+export default function FileList({ files, onFileSelect, onFileUpload }: FileListProps) {
+  // Sort files in descending order of their timestamps
+  const sortedFiles = [...files].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  return (
     <Box>
       <Typography variant="h6" gutterBottom>
         Uploaded Files
@@ -31,16 +34,16 @@ return (
         }}
       >
         <List>
-          {files.map((fileUrl, index) => (
+          {sortedFiles.map((file, index) => (
             <ListItem disablePadding key={index}>
-              <ListItemButton onClick={() => onFileSelect(fileUrl)}>
-                <ListItemText primary={fileUrl} />
+              <ListItemButton onClick={() => onFileSelect(file.url)}>
+                <ListItemText primary={file.filename} />
               </ListItemButton>
             </ListItem>
           ))}
         </List>
       </Paper>
-    <UploadForm onFileUpload={(fileUrl: string) => console.log(fileUrl)} />
+      <UploadForm onFileUpload={onFileUpload} />
     </Box>
   );
 }

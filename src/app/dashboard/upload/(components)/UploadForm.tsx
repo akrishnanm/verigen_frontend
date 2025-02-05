@@ -21,7 +21,7 @@ const fileSchema = z.object({
 
 type FileFormValues = z.infer<typeof fileSchema>;
 interface UploadFormProps {
-  onFileUpload: (fileUrl: string) => void;
+  onFileUpload: (files: { filename: string; url: string; timestamp: string }[]) => void;
 }
 
 export default function UploadForm({ onFileUpload }: UploadFormProps) {
@@ -44,8 +44,8 @@ export default function UploadForm({ onFileUpload }: UploadFormProps) {
 
     try {
       const response = await upload(formData).unwrap();
-      const fileUrl = response.url; // Assuming the response contains the URL of the uploaded file
-      onFileUpload(fileUrl);
+      const files = response.files; 
+      onFileUpload(files);
       setError(null);
     } catch (error) {
       console.error('Upload failed:', error);
