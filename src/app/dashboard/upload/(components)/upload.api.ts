@@ -9,7 +9,16 @@ export const uploadApi = baseApi.injectEndpoints({
         body: formData,
       }),
     }),
+    fetchUploadedFiles: builder.query({
+      query: (accessToken) => ({
+        url: '/fetch_files',
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }),
+    }),
   }),
 });
 
-export const { useUploadMutation } = uploadApi;
+export const { useUploadMutation, useFetchUploadedFilesQuery } = uploadApi;

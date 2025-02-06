@@ -1,14 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import FileList from './(components)/FileList';
 import FileProcessing from './(components)/FileProcessing';
-
+import { StorageUtil } from '@/utils/storage';
+import { useFetchUploadedFilesQuery } from './(components)/upload.api';
 
 const Upload = () => {
   const [selectedFile, setSelectedFile] = useState<{ filename: string; url: string } | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<{ filename: string; url: string; timestamp: string }[]>([]);
+
+  const accessToken = StorageUtil.get('accessToken');
+  const { data: files} = useFetchUploadedFilesQuery(accessToken, {
+    skip: !accessToken,
+  });
+
+  useEffect(() => {
+    if (files) {
+      setUploadedFiles(files);
+    }
+  }, [files]);
 
   const handleFileUpload = (files: { filename: string; url: string; timestamp: string }[]) => {
     setUploadedFiles(files);
