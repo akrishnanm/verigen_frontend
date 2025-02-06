@@ -12,7 +12,7 @@ import UploadForm from "./UploadForm";
 
 interface FileListProps {
   files: { filename: string; url: string; timestamp: string }[];
-  onFileSelect: (fileUrl: string) => void;
+  onFileSelect: (file: { filename: string; url: string }) => void;
   onFileUpload: (files: { filename: string; url: string; timestamp: string }[]) => void;
 }
 
@@ -36,7 +36,7 @@ export default function FileList({ files, onFileSelect, onFileUpload }: FileList
         <List>
           {sortedFiles.map((file, index) => (
             <ListItem disablePadding key={index}>
-              <ListItemButton onClick={() => onFileSelect(file.url)}>
+              <ListItemButton onClick={() => onFileSelect(file)}>
                 <ListItemText primary={file.filename} />
               </ListItemButton>
             </ListItem>

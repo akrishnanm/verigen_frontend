@@ -5,16 +5,17 @@ import { Box, Container, Typography } from '@mui/material';
 import FileList from './(components)/FileList';
 import FileProcessing from './(components)/FileProcessing';
 
+
 const Upload = () => {
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ filename: string; url: string } | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<{ filename: string; url: string; timestamp: string }[]>([]);
 
   const handleFileUpload = (files: { filename: string; url: string; timestamp: string }[]) => {
     setUploadedFiles(files);
   };
 
-  const handleFileSelect = (fileUrl: string) => {
-    setSelectedFile(fileUrl);
+  const handleFileSelect = (file: { filename: string; url: string }) => {
+    setSelectedFile(file);
   };
 
   return (
@@ -32,7 +33,7 @@ const Upload = () => {
             />
           </Box>
           <Box sx={{ flex: 2 }}>
-            <FileProcessing selectedFile={selectedFile} />
+          <FileProcessing selectedFile={selectedFile} />
           </Box>
         </Box>
       </Box>

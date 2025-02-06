@@ -4,7 +4,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline"
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline"
 
 interface FileProcessingProps {
-  selectedFile: string | null
+    selectedFile: { filename: string; url: string } | null;
 }
 
 export default function FileProcessing({ selectedFile }: FileProcessingProps) {
@@ -71,7 +71,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         File Processing
       </Typography>
       <Typography variant="body1" gutterBottom>
-        Selected File: {selectedFile || "No file selected"}
+        Selected File: {selectedFile ? selectedFile.filename : "No file selected"}
       </Typography>
       <Box sx={{ my: 2 }}>
         <Button variant="contained" onClick={() => processFile("icarus")} disabled={!selectedFile} sx={{ mr: 2 }}>
