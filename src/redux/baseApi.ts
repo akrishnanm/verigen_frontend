@@ -40,6 +40,9 @@ export const baseApi = createApi({
           StorageUtil.remove('accessToken');
           errorMessage = 'Session expired. Please log in again.';
         }
+        if (error.status === 500) {
+          errorMessage = 'Compilation error.';
+        }
       }
 
       // Handle network or parsing errors
