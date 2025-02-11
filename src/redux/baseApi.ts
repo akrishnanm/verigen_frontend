@@ -41,7 +41,7 @@ export const baseApi = createApi({
           errorMessage = 'Session expired. Please log in again.';
         }
         if (error.status === 500) {
-          errorMessage = 'Compilation error.';
+          errorMessage = 'Internal Server Error';
         }
       }
 
