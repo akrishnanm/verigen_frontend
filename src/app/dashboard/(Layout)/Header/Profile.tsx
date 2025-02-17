@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { Avatar, Box, Menu, Button, IconButton } from '@mui/material';
+import { useAuth } from '@/hooks/useAuth';
 
 const Profile = () => {
+  const { logout } = useAuth();
   const [anchorEl2, setAnchorEl2] = useState<HTMLButtonElement | null>(null);
   const handleClick2 = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl2(event.currentTarget);
@@ -71,13 +72,7 @@ const Profile = () => {
           <ListItemText>My Tasks</ListItemText>
         </MenuItem> */}
         <Box mt={1} py={1} px={2}>
-          <Button
-            href="/auth/login"
-            variant="outlined"
-            color="primary"
-            component={Link}
-            fullWidth
-          >
+          <Button onClick={logout} variant="outlined" color="primary" fullWidth>
             Logout
           </Button>
         </Box>
