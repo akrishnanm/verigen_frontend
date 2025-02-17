@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Box, Container } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import FileList from './(components)/FileList';
 import FileProcessing from './(components)/FileProcessing';
 import { StorageUtil } from '@/utils/storage';
@@ -38,22 +38,25 @@ const Upload = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <>
+      <Typography variant="h4" fontWeight="bold" sx={{ mt: 3 }}>
+        File Processing Dashboard
+      </Typography>
       <Box sx={{ my: 4 }}>
-        <Box sx={{ display: 'flex', gap: 3 }}>
-          <Box sx={{ flex: 1 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <FileList
               files={uploadedFiles}
               onFileSelect={handleFileSelect}
               onFileUpload={handleFileUpload}
             />
-          </Box>
-          <Box sx={{ flex: 2 }}>
+          </Grid>
+          <Grid item xs={12} sm={6} md={8}>
             <FileProcessing selectedFile={selectedFile} />
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       </Box>
-    </Container>
+    </>
   );
 };
 

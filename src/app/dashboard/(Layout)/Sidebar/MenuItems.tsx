@@ -1,4 +1,4 @@
-import DashboardIcon from '@mui/icons-material/Dashboard';
+// import DashboardIcon from '@mui/icons-material/Dashboard';
 import ClouduploadIcon from '@mui/icons-material/CloudUpload';
 
 import { uniqueId } from 'lodash';
@@ -9,12 +9,12 @@ const Menuitems = [
     subheader: 'Home',
   },
 
-  {
-    id: uniqueId(),
-    title: 'Dashboard',
-    icon: DashboardIcon,
-    href: '/',
-  },
+  // {
+  //   id: uniqueId(),
+  //   title: 'Dashboard',
+  //   icon: DashboardIcon,
+  //   href: '/',
+  // },
   {
     id: uniqueId(),
     title: 'Upload',

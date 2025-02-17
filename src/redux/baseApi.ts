@@ -36,9 +36,12 @@ export const baseApi = createApi({
           (error.data as { detail?: string })?.detail || errorMessage;
 
         // Handle invalid token error (401 Unauthorized)
-        if (error.status === 401) {
+        if (error.status === 403) {
           StorageUtil.remove('accessToken');
           errorMessage = 'Session expired. Please log in again.';
+        }
+        if (error.status === 500) {
+          errorMessage = 'Internal Server Error';
         }
       }
 

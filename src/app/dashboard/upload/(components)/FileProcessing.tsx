@@ -1,20 +1,45 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Typography, LinearProgress, Alert } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import {
+  useProcessFileMutation,
+  useProcessOpenLaneFileMutation,
+} from './upload.api';
 
 interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
 }
 
+interface ApiError {
+  data?: {
+    detail?: string;
+  };
+  message?: string;
+}
+
 export default function FileProcessing({ selectedFile }: FileProcessingProps) {
-  const [icarusProgress, setIcarusProgress] = useState(0);
-  const [openlaneProgress, setOpenlaneProgress] = useState(0);
   const [icarusError, setIcarusError] = useState<string | null>(null);
   const [openlaneError, setOpenlaneError] = useState<string | null>(null);
   const [icarusSuccess, setIcarusSuccess] = useState(false);
   const [openlaneSuccess, setOpenlaneSuccess] = useState(false);
+  const [icarusLoading, setIcarusLoading] = useState(false);
+  const [openlaneLoading, setOpenlaneLoading] = useState(false);
   const [downloadEnabled, setDownloadEnabled] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [fullErrorMessage, setFullErrorMessage] = useState<string | null>(null);
+
+  const [processFileIcarus] = useProcessFileMutation();
+  const [processFileOpenLane] = useProcessOpenLaneFileMutation();
 
   useEffect(() => {
     if (icarusSuccess && openlaneSuccess) {
@@ -24,44 +49,68 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
     }
   }, [icarusSuccess, openlaneSuccess]);
 
-  const processFile = async (processor: 'icarus' | 'openlane') => {
+  const handleProcessFile = async (processor: 'icarus' | 'openlane') => {
     if (!selectedFile) return;
 
-    const setProgress =
-      processor === 'icarus' ? setIcarusProgress : setOpenlaneProgress;
+    const setLoading =
+      processor === 'icarus' ? setIcarusLoading : setOpenlaneLoading;
     const setError = processor === 'icarus' ? setIcarusError : setOpenlaneError;
     const setSuccess =
       processor === 'icarus' ? setIcarusSuccess : setOpenlaneSuccess;
+    const processMutation =
+      processor === 'icarus' ? processFileIcarus : processFileOpenLane;
 
-    setProgress(0);
+    setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const response = await fetch(`/api/process-file`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: selectedFile, processor }),
-      });
+      const response = await processMutation({
+        file_id: selectedFile.filename,
+      }).unwrap();
 
-      if (!response.ok) {
-        throw new Error('File processing failed');
+      if (response.status === 'success') {
+        setSuccess(true);
+      } else {
+        const errorMessage = extractErrorMessage(response.detail);
+        setError(errorMessage || 'File processing failed');
+        setFullErrorMessage(errorMessage);
+        setDialogOpen(true);
       }
-
-      // Simulate progress
-      for (let i = 0; i <= 100; i += 10) {
-        setProgress(i);
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-
-      setProgress(100);
-      setSuccess(true);
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : 'An unknown error occurred'
+      const apiError = error as ApiError;
+      const errorMessage = extractErrorMessage(
+        apiError.data?.detail || 'An unknown error occurred'
       );
-      setProgress(0);
+      setError('Compilation error');
+      setFullErrorMessage(errorMessage);
+      setDialogOpen(true);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const extractErrorMessage = (detail: string): string => {
+    const prefix = '400: Verilog processing failed: ';
+    let errorString = detail;
+
+    // Remove the prefix if present
+    if (errorString.startsWith(prefix)) {
+      errorString = errorString.substring(prefix.length);
+      try {
+        const parsed = JSON.parse(errorString);
+        // Extract the 'log' property
+        errorString = parsed.detail?.log || errorString;
+      } catch (e) {
+        console.error('JSON parsing error:', e);
+      }
+    }
+
+    // Remove unwanted file path parts and replace newlines with a single space
+    errorString = errorString.replace(/\/usr\/src\/app\/local_files\//g, '');
+    errorString = errorString.replace(/\n/g, '\n');
+
+    return errorString;
   };
 
   const handleDownload = () => {
@@ -69,92 +118,115 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
     console.log('Download initiated');
   };
 
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
   return (
     <Box
-      sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: 3 }}
+      sx={{
+        p: 4,
+        borderRadius: 3,
+        bgcolor: 'background.paper',
+        boxShadow: 4,
+      }}
     >
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h5" gutterBottom fontWeight="bold">
         File Processing
       </Typography>
 
-      <Typography variant="body1" gutterBottom>
+      <Typography variant="body1" color="text.secondary">
         Selected File:{' '}
-        {selectedFile ? selectedFile.filename : 'No file selected'}
+        <strong>
+          {selectedFile ? selectedFile.filename : 'No file selected'}
+        </strong>
       </Typography>
 
-      {/* Processing Buttons */}
-      <Box sx={{ my: 2, display: 'flex', gap: 2 }}>
+      <Box sx={{ my: 3, display: 'flex', gap: 2 }}>
         <Button
           variant="contained"
-          onClick={() => processFile('icarus')}
-          disabled={!selectedFile}
+          color="primary"
+          onClick={() => handleProcessFile('icarus')}
+          disabled={!selectedFile || icarusLoading}
+          startIcon={<CheckCircleOutlineIcon />}
         >
           Icarus
         </Button>
         <Button
           variant="contained"
-          onClick={() => processFile('openlane')}
-          disabled={!selectedFile}
+          color="secondary"
+          onClick={() => handleProcessFile('openlane')}
+          disabled={!selectedFile || openlaneLoading}
+          startIcon={<CheckCircleOutlineIcon />}
         >
           OpenLane
         </Button>
       </Box>
 
-      {/* Icarus Progress */}
+      {/* Icarus Status */}
       <Box sx={{ my: 2 }}>
-        <Typography variant="body2">Icarus Progress:</Typography>
+        <Typography variant="subtitle2">Icarus Status</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LinearProgress
-            variant="determinate"
-            value={icarusProgress}
-            sx={{ flexGrow: 1 }}
-          />
+          {icarusLoading && <LinearProgress sx={{ flex: 1 }} />}
           {icarusSuccess && <CheckCircleOutlineIcon color="success" />}
           {icarusError && <ErrorOutlineIcon color="error" />}
         </Box>
         {icarusError && (
-          <Alert severity="error" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
             {icarusError}
-          </Alert>
+          </Typography>
         )}
       </Box>
 
-      {/* Global Error Alert */}
-      {(icarusError || openlaneError) && (
-        <Alert severity="error" sx={{ my: 2 }}>
-          An error occurred during file processing. Please try again.
-        </Alert>
-      )}
-
-      {/* OpenLane Progress */}
+      {/* OpenLane Status */}
       <Box sx={{ my: 2 }}>
-        <Typography variant="body2">OpenLane Progress:</Typography>
+        <Typography variant="subtitle2">OpenLane Status</Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LinearProgress
-            variant="determinate"
-            value={openlaneProgress}
-            sx={{ flexGrow: 1 }}
-          />
+          {openlaneLoading && <LinearProgress sx={{ flex: 1 }} />}
           {openlaneSuccess && <CheckCircleOutlineIcon color="success" />}
           {openlaneError && <ErrorOutlineIcon color="error" />}
         </Box>
         {openlaneError && (
-          <Alert severity="error" sx={{ mt: 1 }}>
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
             {openlaneError}
-          </Alert>
+          </Typography>
         )}
       </Box>
 
       {/* Download Button */}
-      <Box sx={{ my: 2 }}>
+      <Box sx={{ my: 3 }}>
         <Button
           variant="contained"
+          color="success"
           onClick={handleDownload}
           disabled={!downloadEnabled}
         >
           Download
         </Button>
       </Box>
+
+      {/* Error Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Error Details</DialogTitle>
+        <DialogContent>
+          <Typography
+            variant="body2"
+            sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}
+          >
+            {fullErrorMessage}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

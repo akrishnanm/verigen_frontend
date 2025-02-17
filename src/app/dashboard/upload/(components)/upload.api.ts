@@ -18,7 +18,21 @@ export const uploadApi = baseApi.injectEndpoints({
         },
       }),
     }),
+    processFile: builder.mutation({
+      query: ({ file_id }) => ({
+        url: '/api/Icarus/',
+        method: 'POST',
+        body: { file_id },
+      }),
+    }),
+    processOpenLaneFile: builder.mutation({
+      query: ({ file_id }) => ({
+        url: '/api/Openlane_2/',
+        method: 'POST',
+        body: { file_id },
+      }),
+    }),
   }),
 });
 
-export const { useUploadMutation, useFetchUploadedFilesQuery } = uploadApi;
+export const { useUploadMutation, useFetchUploadedFilesQuery, useProcessFileMutation, useProcessOpenLaneFileMutation } = uploadApi;

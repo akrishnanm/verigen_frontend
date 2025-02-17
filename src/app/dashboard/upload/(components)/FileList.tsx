@@ -29,10 +29,17 @@ export default function FileList({
 
   return (
     <Box
-      sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: 3 }}
+      sx={{
+        p: 4,
+        borderRadius: 3,
+        bgcolor: 'background.paper',
+        boxShadow: 4,
+        maxWidth: 500,
+        mx: 'auto',
+      }}
     >
-      <Typography variant="h6" gutterBottom>
-        File Processing
+      <Typography variant="h5" gutterBottom fontWeight="bold">
+        Upload Files
       </Typography>
       <List
         sx={{
