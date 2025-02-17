@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useUploadMutation } from './upload.api';
-import FileInput from '@/components/FileInput';
+import { Button, TextField, Typography } from '@mui/material';
 
 const fileSchema = z.object({
   file: z
@@ -21,7 +21,9 @@ const fileSchema = z.object({
 
 type FileFormValues = z.infer<typeof fileSchema>;
 interface UploadFormProps {
-  onFileUpload: (files: { filename: string; url: string; timestamp: string }[]) => void;
+  onFileUpload: (
+    files: { filename: string; url: string; timestamp: string }[]
+  ) => void;
 }
 
 export default function UploadForm({ onFileUpload }: UploadFormProps) {
@@ -39,43 +41,51 @@ export default function UploadForm({ onFileUpload }: UploadFormProps) {
   const onSubmit = async (data: FileFormValues) => {
     const file = data.file[0];
     if (file.name.endsWith('.v')) {
-    const formData = new FormData();
-    formData.append('file', file);
+      const formData = new FormData();
+      formData.append('file', file);
 
-    try {
-      const response = await upload(formData).unwrap();
-      const files = response.files; 
-      onFileUpload(files);
-      setError(null);
-    } catch (error) {
-      console.error('Upload failed:', error);
+      try {
+        const response = await upload(formData).unwrap();
+        const files = response.files;
+        onFileUpload(files);
+        setError(null);
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    } else {
+      setError('Invalid file type. Please upload a .v file.');
     }
-  } else {
-    setError('Invalid file type. Please upload a .v file.');
-  }
-};
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <FileInput
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+    >
+      <TextField
         label="Select a file"
-        name="file"
-        register={register}
-        error={errors.file?.message as string}
+        type="file"
+        InputLabelProps={{ shrink: true }}
+        {...register('file')}
+        error={!!errors.file}
+        helperText={errors.file?.message as string}
       />
-      
-      {error && <span className="text-red-500">{error}</span>}
 
-      <button
+      {error && <Typography color="error">{error}</Typography>}
+
+      <Button
         type="submit"
+        variant="contained"
+        color="success"
         disabled={isLoading}
-        className="rounded-lg bg-green-500 px-4 py-2 text-white"
       >
         {isLoading ? 'Uploading...' : 'Upload'}
-      </button>
+      </Button>
 
-      {isSuccess && <p className="text-green-500">Upload successful!</p>}
-      {isError && <p className="text-red-500">Upload failed.</p>}
+      {isSuccess && (
+        <Typography color="success.main">Upload successful!</Typography>
+      )}
+      {isError && <Typography color="error.main">Upload failed.</Typography>}
     </form>
   );
 }

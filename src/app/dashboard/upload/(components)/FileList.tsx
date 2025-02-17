@@ -6,43 +6,61 @@ import {
   ListItemButton,
   ListItemText,
   Typography,
-  Paper,
 } from '@mui/material';
-import UploadForm from "./UploadForm";
+import UploadForm from './UploadForm';
 
 interface FileListProps {
   files: { filename: string; url: string; timestamp: string }[];
   onFileSelect: (file: { filename: string; url: string }) => void;
-  onFileUpload: (files: { filename: string; url: string; timestamp: string }[]) => void;
+  onFileUpload: (
+    files: { filename: string; url: string; timestamp: string }[]
+  ) => void;
 }
 
-export default function FileList({ files, onFileSelect, onFileUpload }: FileListProps) {
+export default function FileList({
+  files,
+  onFileSelect,
+  onFileUpload,
+}: FileListProps) {
   // Sort files in descending order of their timestamps
-  const sortedFiles = [...files].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  const sortedFiles = [...files].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
 
   return (
-    <Box>
+    <Box
+      sx={{ p: 3, borderRadius: 2, bgcolor: 'background.paper', boxShadow: 3 }}
+    >
       <Typography variant="h6" gutterBottom>
-        Uploaded Files
+        File Processing
       </Typography>
-      <Paper
-        elevation={3}
+      <List
         sx={{
-          height: '300px',
-          overflow: 'auto',
+          height: 300,
+          overflowY: 'auto',
           mb: 2,
+          borderRadius: 2,
+          bgcolor: 'background.default',
         }}
       >
-        <List>
-          {sortedFiles.map((file, index) => (
-            <ListItem disablePadding key={index}>
-              <ListItemButton onClick={() => onFileSelect(file)}>
-                <ListItemText primary={file.filename} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
+        {sortedFiles.map((file, index) => (
+          <ListItem disablePadding key={index}>
+            <ListItemButton
+              onClick={() => onFileSelect(file)}
+              sx={{
+                px: 2,
+                '&:hover': { bgcolor: 'action.hover' },
+                '&.Mui-selected, &.Mui-selected:hover': {
+                  bgcolor: 'action.selected',
+                },
+              }}
+            >
+              <ListItemText primary={file.filename} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+
       <UploadForm onFileUpload={onFileUpload} />
     </Box>
   );
