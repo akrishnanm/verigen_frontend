@@ -1,48 +1,47 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Button,
-  Typography,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
+import { Box, Button, LinearProgress, Typography } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   useProcessFileMutation,
   useProcessOpenLaneFileMutation,
 } from './upload.api';
+import useFcmToken from '@/hooks/useFcmToken'; // Import the useFcmToken hook
 
 interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
 }
 
-interface ApiError {
-  data?: {
-    detail?: string;
-  };
-  message?: string;
-}
-
 export default function FileProcessing({ selectedFile }: FileProcessingProps) {
-  const [icarusError, setIcarusError] = useState<string | null>(null);
-  const [openlaneError, setOpenlaneError] = useState<string | null>(null);
-  const [icarusSuccess, setIcarusSuccess] = useState(false);
-  const [openlaneSuccess, setOpenlaneSuccess] = useState(false);
+  const [icarusError, setIcarusError] = useState<boolean>(false);
+  const [openlaneError, setOpenlaneError] = useState<boolean>(false);
+  const [icarusSuccess, setIcarusSuccess] = useState<boolean>(false);
+  const [openlaneSuccess, setOpenlaneSuccess] = useState<boolean>(false);
   const [icarusLoading, setIcarusLoading] = useState(false);
   const [openlaneLoading, setOpenlaneLoading] = useState(false);
   const [downloadEnabled, setDownloadEnabled] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [fullErrorMessage, setFullErrorMessage] = useState<string | null>(null);
 
   const [processFileIcarus] = useProcessFileMutation();
   const [processFileOpenLane] = useProcessOpenLaneFileMutation();
 
+  const { token: fcmToken, notificationData } = useFcmToken(); // Get the FCM token and notification data from the useFcmToken hook
+
   useEffect(() => {
-    if (icarusSuccess && openlaneSuccess) {
+    if (notificationData) {
+      if (notificationData.body.includes('Status - error')) {
+        setIcarusError(true);
+        setIcarusSuccess(false);
+      } else if (notificationData.body.includes('Status - success')) {
+        setIcarusSuccess(true);
+        setIcarusError(false);
+      }
+    }
+  }, [notificationData]);
+
+  useEffect(() => {
+    if (openlaneSuccess) {
       setDownloadEnabled(true);
     } else {
       setDownloadEnabled(false);
@@ -51,7 +50,6 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
 
   const handleProcessFile = async (processor: 'icarus' | 'openlane') => {
     if (!selectedFile) return;
-
     const setLoading =
       processor === 'icarus' ? setIcarusLoading : setOpenlaneLoading;
     const setError = processor === 'icarus' ? setIcarusError : setOpenlaneError;
@@ -65,61 +63,30 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
     setSuccess(false);
 
     try {
-      const response = await processMutation({
+      await processMutation({
         file_id: selectedFile.filename,
+        fcm_token: fcmToken, // Include the FCM token in the API call
       }).unwrap();
-
-      if (response.status === 'success') {
-        setSuccess(true);
-      } else {
-        const errorMessage = extractErrorMessage(response.detail);
-        setError(errorMessage || 'File processing failed');
-        setFullErrorMessage(errorMessage);
-        setDialogOpen(true);
-      }
     } catch (error) {
-      const apiError = error as ApiError;
-      const errorMessage = extractErrorMessage(
-        apiError.data?.detail || 'An unknown error occurred'
-      );
+      const errorMessage = error.message ||'An unknown error occurred during file processing';
       setError('Compilation error');
-      setFullErrorMessage(errorMessage);
-      setDialogOpen(true);
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const extractErrorMessage = (detail: string): string => {
-    const prefix = '400: Verilog processing failed: ';
-    let errorString = detail;
-
-    // Remove the prefix if present
-    if (errorString.startsWith(prefix)) {
-      errorString = errorString.substring(prefix.length);
-      try {
-        const parsed = JSON.parse(errorString);
-        // Extract the 'log' property
-        errorString = parsed.detail?.log || errorString;
-      } catch (e) {
-        console.error('JSON parsing error:', e);
-      }
-    }
-
-    // Remove unwanted file path parts and replace newlines with a single space
-    errorString = errorString.replace(/\/usr\/src\/app\/local_files\//g, '');
-    errorString = errorString.replace(/\n/g, '\n');
-
-    return errorString;
-  };
-
   const handleDownload = () => {
     // Implement the download logic here
     console.log('Download initiated');
-  };
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
   };
 
   return (
@@ -173,7 +140,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         </Box>
         {icarusError && (
           <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            {icarusError}
+            Compilation error
           </Typography>
         )}
       </Box>
@@ -205,28 +172,8 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         </Button>
       </Box>
 
-      {/* Error Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Error Details</DialogTitle>
-        <DialogContent>
-          <Typography
-            variant="body2"
-            sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}
-          >
-            {fullErrorMessage}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} variant="contained">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Toast Container */}
+      <ToastContainer />
     </Box>
   );
 }

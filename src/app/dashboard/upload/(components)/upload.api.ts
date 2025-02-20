@@ -19,10 +19,10 @@ export const uploadApi = baseApi.injectEndpoints({
       }),
     }),
     processFile: builder.mutation({
-      query: ({ file_id }) => ({
+      query: ({ file_id, fcm_token }) => ({
         url: '/api/Icarus/',
         method: 'POST',
-        body: { file_id },
+        body: { file_id, fcm_token },
       }),
     }),
     processOpenLaneFile: builder.mutation({
