@@ -12,7 +12,7 @@ const GuestGuard = ({ children }: { children: React.ReactNode }) => {
     const token = StorageUtil.get('accessToken');
 
     if (token) {
-      router.replace('/dashboard');
+      router.replace('/dashboard/upload');
     } else {
       setIsLoading(false);
     }

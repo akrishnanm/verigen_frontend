@@ -28,7 +28,7 @@ export default function Login() {
         data: { access_token },
       } = await loginUser(data);
       StorageUtil.set('accessToken', access_token);
-      router.push('/dashboard');
+      router.push('/dashboard/upload');
     } catch (err) {
       console.error('Failed to login:', err);
     }
@@ -77,8 +77,8 @@ export default function Login() {
           </Grid>
         </Grid>
 
-        <Box sx={{ textAlign: 'right', mt: 2}}>
-        <Typography variant="body2">
+        <Box sx={{ textAlign: 'right', mt: 2 }}>
+          <Typography variant="body2">
             <Link href="forgot-password ">Forgot password?</Link>
           </Typography>
         </Box>

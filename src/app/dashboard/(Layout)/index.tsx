@@ -1,5 +1,5 @@
 'use client';
-import { styled, Container, Box } from '@mui/material';
+import { styled, Box } from '@mui/material';
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -34,14 +34,9 @@ export default function DashboardLayout({
       />
       <PageWrapper className="page-wrapper">
         <Header toggleMobileSidebar={() => setMobileSidebarOpen(true)} />
-        <Container
-          sx={{
-            paddingTop: '20px',
-            maxWidth: '1200px',
-          }}
-        >
-          <Box sx={{ minHeight: 'calc(100vh - 170px)' }}>{children}</Box>
-        </Container>
+        <Box sx={{ minHeight: 'calc(100vh - 170px)', padding: '30px' }}>
+          {children}
+        </Box>
       </PageWrapper>
     </MainWrapper>
   );
