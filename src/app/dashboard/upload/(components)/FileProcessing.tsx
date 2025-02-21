@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, LinearProgress, Typography } from '@mui/material';
+import {
+  Box,
+  LinearProgress,
+  Typography,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { ToastContainer, toast } from 'react-toastify';
@@ -26,7 +35,13 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   const [processFileIcarus] = useProcessFileMutation();
   const [processFileOpenLane] = useProcessOpenLaneFileMutation();
 
-  const { token: fcmToken, notificationData } = useFcmToken(); // Get the FCM token and notification data from the useFcmToken hook
+  // Use the useFcmToken hook
+  const {
+    token: fcmToken,
+    dialogOpen,
+    notificationData,
+    handleDialogClose,
+  } = useFcmToken();
 
   useEffect(() => {
     if (notificationData) {
@@ -59,7 +74,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       processor === 'icarus' ? processFileIcarus : processFileOpenLane;
 
     setLoading(true);
-    setError(null);
+    setError(false);
     setSuccess(false);
 
     try {
@@ -67,9 +82,12 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         file_id: selectedFile.filename,
         fcm_token: fcmToken, // Include the FCM token in the API call
       }).unwrap();
-    } catch (error) {
-      const errorMessage = error.message ||'An unknown error occurred during file processing';
-      setError('Compilation error');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An unknown error occurred during file processing';
+      setError(true);
       toast.error(errorMessage, {
         position: 'top-right',
         autoClose: 5000,
@@ -90,90 +108,107 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   };
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        borderRadius: 3,
-        bgcolor: 'background.paper',
-        boxShadow: 4,
-      }}
-    >
-      <Typography variant="h5" gutterBottom fontWeight="bold">
-        File Processing
-      </Typography>
+    <>
+      <Box
+        sx={{
+          p: 4,
+          borderRadius: 3,
+          bgcolor: 'background.paper',
+          boxShadow: 4,
+        }}
+      >
+        <Typography variant="h5" gutterBottom fontWeight="bold">
+          File Processing
+        </Typography>
 
-      <Typography variant="body1" color="text.secondary">
-        Selected File:{' '}
-        <strong>
-          {selectedFile ? selectedFile.filename : 'No file selected'}
-        </strong>
-      </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Selected File:{' '}
+          <strong>
+            {selectedFile ? selectedFile.filename : 'No file selected'}
+          </strong>
+        </Typography>
 
-      <Box sx={{ my: 3, display: 'flex', gap: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => handleProcessFile('icarus')}
-          disabled={!selectedFile || icarusLoading}
-          startIcon={<CheckCircleOutlineIcon />}
-        >
-          Icarus
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => handleProcessFile('openlane')}
-          disabled={!selectedFile || openlaneLoading}
-          startIcon={<CheckCircleOutlineIcon />}
-        >
-          OpenLane
-        </Button>
-      </Box>
-
-      {/* Icarus Status */}
-      <Box sx={{ my: 2 }}>
-        <Typography variant="subtitle2">Icarus Status</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {icarusLoading && <LinearProgress sx={{ flex: 1 }} />}
-          {icarusSuccess && <CheckCircleOutlineIcon color="success" />}
-          {icarusError && <ErrorOutlineIcon color="error" />}
+        <Box sx={{ my: 3, display: 'flex', gap: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleProcessFile('icarus')}
+            disabled={!selectedFile || icarusLoading}
+            startIcon={<CheckCircleOutlineIcon />}
+          >
+            Icarus
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => handleProcessFile('openlane')}
+            disabled={!selectedFile || openlaneLoading}
+            startIcon={<CheckCircleOutlineIcon />}
+          >
+            OpenLane
+          </Button>
         </Box>
-        {icarusError && (
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            Compilation error
-          </Typography>
-        )}
-      </Box>
 
-      {/* OpenLane Status */}
-      <Box sx={{ my: 2 }}>
-        <Typography variant="subtitle2">OpenLane Status</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {openlaneLoading && <LinearProgress sx={{ flex: 1 }} />}
-          {openlaneSuccess && <CheckCircleOutlineIcon color="success" />}
-          {openlaneError && <ErrorOutlineIcon color="error" />}
+        {/* Icarus Status */}
+        <Box sx={{ my: 2 }}>
+          <Typography variant="subtitle2">Icarus Status</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {icarusLoading && <LinearProgress sx={{ flex: 1 }} />}
+            {icarusSuccess && <CheckCircleOutlineIcon color="success" />}
+            {icarusError && <ErrorOutlineIcon color="error" />}
+          </Box>
+          {icarusError && (
+            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+              Compilation error
+            </Typography>
+          )}
         </Box>
-        {openlaneError && (
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            {openlaneError}
+
+        {/* OpenLane Status */}
+        <Box sx={{ my: 2 }}>
+          <Typography variant="subtitle2">OpenLane Status</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {openlaneLoading && <LinearProgress sx={{ flex: 1 }} />}
+            {openlaneSuccess && <CheckCircleOutlineIcon color="success" />}
+            {openlaneError && <ErrorOutlineIcon color="error" />}
+          </Box>
+          {openlaneError && (
+            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+              {openlaneError}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Download Button */}
+        <Box sx={{ my: 3 }}>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleDownload}
+            disabled={!downloadEnabled}
+          >
+            Download
+          </Button>
+        </Box>
+
+        {/* Toast Container */}
+        <ToastContainer />
+      </Box>
+
+      {/* Dialog box for notifications */}
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle>{notificationData?.title}</DialogTitle>
+        <DialogContent>
+          <Typography component="pre" style={{ whiteSpace: 'pre-wrap' }}>
+            {notificationData?.body}
           </Typography>
-        )}
-      </Box>
-
-      {/* Download Button */}
-      <Box sx={{ my: 3 }}>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={handleDownload}
-          disabled={!downloadEnabled}
-        >
-          Download
-        </Button>
-      </Box>
-
-      {/* Toast Container */}
-      <ToastContainer />
-    </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }

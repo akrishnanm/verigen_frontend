@@ -19,7 +19,7 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Upload',
     icon: ClouduploadIcon,
-    href: 'dashboard/upload',
+    href: '/dashboard/upload',
   },
 ];
 

@@ -10,12 +10,9 @@ export const uploadApi = baseApi.injectEndpoints({
       }),
     }),
     fetchUploadedFiles: builder.query({
-      query: (accessToken) => ({
+      query: () => ({
         url: '/fetch_files',
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       }),
     }),
     processFile: builder.mutation({
@@ -35,4 +32,9 @@ export const uploadApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useUploadMutation, useFetchUploadedFilesQuery, useProcessFileMutation, useProcessOpenLaneFileMutation } = uploadApi;
+export const {
+  useUploadMutation,
+  useFetchUploadedFilesQuery,
+  useProcessFileMutation,
+  useProcessOpenLaneFileMutation,
+} = uploadApi;
