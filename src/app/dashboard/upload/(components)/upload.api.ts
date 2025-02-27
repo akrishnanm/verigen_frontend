@@ -10,19 +10,16 @@ export const uploadApi = baseApi.injectEndpoints({
       }),
     }),
     fetchUploadedFiles: builder.query({
-      query: (accessToken) => ({
+      query: () => ({
         url: '/fetch_files',
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
       }),
     }),
     processFile: builder.mutation({
-      query: ({ file_id }) => ({
+      query: ({ file_id, fcm_token }) => ({
         url: '/api/Icarus/',
         method: 'POST',
-        body: { file_id },
+        body: { file_id, fcm_token },
       }),
     }),
     processOpenLaneFile: builder.mutation({
@@ -35,4 +32,9 @@ export const uploadApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useUploadMutation, useFetchUploadedFilesQuery, useProcessFileMutation, useProcessOpenLaneFileMutation } = uploadApi;
+export const {
+  useUploadMutation,
+  useFetchUploadedFilesQuery,
+  useProcessFileMutation,
+  useProcessOpenLaneFileMutation,
+} = uploadApi;

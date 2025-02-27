@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
 import FileList from './(components)/FileList';
 import FileProcessing from './(components)/FileProcessing';
-import { StorageUtil } from '@/utils/storage';
 import { useFetchUploadedFilesQuery } from './(components)/upload.api';
 
 const Upload = () => {
@@ -15,11 +14,7 @@ const Upload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<
     { filename: string; url: string; timestamp: string }[]
   >([]);
-
-  const accessToken = StorageUtil.get('accessToken');
-  const { data: files } = useFetchUploadedFilesQuery(accessToken, {
-    skip: !accessToken,
-  });
+  const { data: files } = useFetchUploadedFilesQuery();
 
   useEffect(() => {
     if (files) {
