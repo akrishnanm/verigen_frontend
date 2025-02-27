@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   useProcessFileMutation,
@@ -88,15 +87,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           ? error.message
           : 'An unknown error occurred during file processing';
       setError(true);
-      toast.error(errorMessage, {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      console.error(errorMessage); // Log the error to the console
     } finally {
       setLoading(false);
     }
@@ -190,9 +181,6 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
             Download
           </Button>
         </Box>
-
-        {/* Toast Container */}
-        <ToastContainer />
       </Box>
 
       {/* Dialog box for notifications */}

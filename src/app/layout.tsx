@@ -6,6 +6,7 @@ import ToastProvider from '@/provider/ToastProvider';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { baseLightTheme } from '@/utils/theme/DefaultColors';
+import { DialogProvider } from '../context/DialogContext'; // Import the DialogProvider
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -24,7 +25,9 @@ export default function RootLayout({
           <ThemeProvider theme={baseLightTheme}>
             <CssBaseline />
             <StoreProvider>
+              <DialogProvider>
               <ToastProvider>{children}</ToastProvider>
+            </DialogProvider>
             </StoreProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>

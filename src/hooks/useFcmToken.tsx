@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { fetchToken, messaging } from '@/firebase';
 import { onMessage, Unsubscribe } from 'firebase/messaging';
 import { useRouter } from 'next/navigation';
+import { useDialogContext } from '../context/DialogContext'; // Import the useDialogContext hook
 
 async function getNotificationPermissionAndToken() {
   // Step 1: Check if Notifications are supported in the browser.
@@ -35,8 +36,8 @@ const useFcmToken = () => {
   const [token, setToken] = useState<string | null>(null); // State to store the FCM token.
   const retryLoadToken = useRef(0); // Ref to keep track of retry attempts.
   const isLoading = useRef(false); // Ref to keep track if a token fetch is currently in progress.
-  const [dialogOpen, setDialogOpen] = useState(false); // State to manage Dialog visibility.
-  const [notificationData, setNotificationData] = useState<{ title: string; body: string } | null>(null); // State to store notification data.
+  const { dialogOpen, notificationData, openDialog, closeDialog } =
+    useDialogContext(); // Use the useDialogContext hook
 
   const loadToken = async () => {
     // Step 4: Prevent multiple fetches if already fetched or in progress.
@@ -86,11 +87,11 @@ const useFcmToken = () => {
 
     // Extract and format log messages
     const logMessages = body.split('\n').map(line => {
-      const match = line.match(/(.*): (.*)/);
-      if (match) {
-        return `${match[1]}: ${match[2]}`;
-      }
-      return line;
+        const match = line.match(/(.*): (.*)/);
+        if (match) {
+          return `${match[1]}: ${match[2]}`;
+        }
+        return line;
     }).join('\n');
     console.log('Notification data cleaned:', { title, body: logMessages });
 
@@ -123,10 +124,8 @@ const useFcmToken = () => {
           payload.notification?.body || 'This is a new message'
         );
 
-        setNotificationData({ title, body });
-        setDialogOpen(true);
+        openDialog({ title, body });
 
-        
         // --------------------------------------------
         // Disable this if you only want toast notifications.
         const n = new Notification(
@@ -148,7 +147,6 @@ const useFcmToken = () => {
         };
         // --------------------------------------------
       });
-      
 
       return unsubscribe;
     };
@@ -165,14 +163,10 @@ const useFcmToken = () => {
     return () => unsubscribe?.();
   }, [token, router]);
 
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
-
   return {
     dialogOpen,
     notificationData,
-    handleDialogClose,
+    handleDialogClose: closeDialog,
     token,
     notificationPermissionStatus,
   };
