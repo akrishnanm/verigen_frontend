@@ -23,10 +23,10 @@ export const uploadApi = baseApi.injectEndpoints({
       }),
     }),
     processOpenLaneFile: builder.mutation({
-      query: ({ file_id }) => ({
+      query: ({ file_id, fcm_token}) => ({
         url: '/api/Openlane_2/',
         method: 'POST',
-        body: { file_id },
+        body: { file_id, fcm_token },
       }),
     }),
   }),

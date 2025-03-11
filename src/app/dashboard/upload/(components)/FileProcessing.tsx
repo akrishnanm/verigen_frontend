@@ -50,6 +50,12 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       } else if (notificationData.body.includes('Status - success')) {
         setIcarusSuccess(true);
         setIcarusError(false);
+      } else if (notificationData.body.includes('OpenLane flow - error')) {
+        setOpenlaneSuccess(false);
+        setOpenlaneError(true);
+      } else if (notificationData.body.includes('OpenLane flow - success')) {
+        setOpenlaneSuccess(true);
+        setOpenlaneError(false);
       }
     }
   }, [notificationData]);
@@ -131,7 +137,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           </Button>
           <Button
             variant="contained"
-            color="secondary"
+            color="primary"
             onClick={() => handleProcessFile('openlane')}
             disabled={!selectedFile || openlaneLoading}
             startIcon={<CheckCircleOutlineIcon />}
@@ -165,7 +171,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           </Box>
           {openlaneError && (
             <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-              {openlaneError}
+              Compilation error
             </Typography>
           )}
         </Box>
