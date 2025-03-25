@@ -38,6 +38,7 @@ const useFcmToken = () => {
   const isLoading = useRef(false); // Ref to keep track if a token fetch is currently in progress.
   const { dialogOpen, notificationData, openDialog, closeDialog } =
     useDialogContext(); // Use the useDialogContext hook
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null); // State to store the download URL.
 
   const loadToken = async () => {
     // Step 4: Prevent multiple fetches if already fetched or in progress.
@@ -94,7 +95,14 @@ const useFcmToken = () => {
         return line;
     }).join('\n');
     console.log('Notification data cleaned:', { title, body: logMessages });
-
+    
+    // Extract URL from the notification body
+    const urlMatch = body.match(/URL: (https?:\/\/[^\s]+)/);
+    const url = urlMatch ? urlMatch[1] : null;
+    if (url) {
+      setDownloadUrl(url);
+    }
+    console.log('Download URL:', url);
     return { title, body: logMessages };
   };
 
@@ -169,6 +177,7 @@ const useFcmToken = () => {
     handleDialogClose: closeDialog,
     token,
     notificationPermissionStatus,
+    downloadUrl,
   };
 };
 

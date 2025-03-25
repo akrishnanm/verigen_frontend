@@ -40,6 +40,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
     dialogOpen,
     notificationData,
     handleDialogClose,
+    downloadUrl,
   } = useFcmToken();
 
   useEffect(() => {
@@ -53,7 +54,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       } else if (notificationData.body.includes('OpenLane flow - error')) {
         setOpenlaneSuccess(false);
         setOpenlaneError(true);
-      } else if (notificationData.body.includes('OpenLane flow - success')) {
+      } else if (notificationData.body.includes('OpenLane flow: success')) {
         setOpenlaneSuccess(true);
         setOpenlaneError(false);
       }
@@ -100,8 +101,11 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   };
 
   const handleDownload = () => {
-    // Implement the download logic here
-    console.log('Download initiated');
+    if (downloadUrl) {
+      window.open(downloadUrl, '_blank');
+    } else {
+      console.log('No download URL available');
+    }
   };
 
   return (
