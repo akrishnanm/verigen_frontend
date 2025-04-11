@@ -17,6 +17,19 @@ import {
   useProcessOpenLaneFileMutation,
 } from './upload.api';
 import useFcmToken from '@/hooks/useFcmToken'; // Import the useFcmToken hook
+import OpenLaneConfigForm from './OpenLaneConfigForm';
+
+interface OpenLaneConfig {
+  clock_port: string;
+  clock_period: number;
+  die_area: string;
+  pin_configuration: {
+    N: string[];
+    S: string[];
+    E: string[];
+    W: string[];
+  };
+}
 
 interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
@@ -30,6 +43,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   const [icarusLoading, setIcarusLoading] = useState(false);
   const [openlaneLoading, setOpenlaneLoading] = useState(false);
   const [downloadEnabled, setDownloadEnabled] = useState(false);
+  const [openLaneConfigDialogOpen, setOpenLaneConfigDialogOpen] = useState(false);
 
   const [processFileIcarus] = useProcessFileMutation();
   const [processFileOpenLane] = useProcessOpenLaneFileMutation();
@@ -69,22 +83,14 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
     }
   }, [icarusSuccess, openlaneSuccess]);
 
-  const handleProcessFile = async (processor: 'icarus' | 'openlane') => {
+  const handleProcessIcarus = async () => {
     if (!selectedFile) return;
-    const setLoading =
-      processor === 'icarus' ? setIcarusLoading : setOpenlaneLoading;
-    const setError = processor === 'icarus' ? setIcarusError : setOpenlaneError;
-    const setSuccess =
-      processor === 'icarus' ? setIcarusSuccess : setOpenlaneSuccess;
-    const processMutation =
-      processor === 'icarus' ? processFileIcarus : processFileOpenLane;
-
-    setLoading(true);
-    setError(false);
-    setSuccess(false);
+    setIcarusLoading(true);
+    setIcarusError(false);
+    setIcarusSuccess(false);
 
     try {
-      await processMutation({
+      await processFileIcarus({
         file_id: selectedFile.filename,
         fcm_token: fcmToken, // Include the FCM token in the API call
       }).unwrap();
@@ -93,10 +99,40 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         error instanceof Error
           ? error.message
           : 'An unknown error occurred during file processing';
-      setError(true);
+      setIcarusError(true);
       console.error(errorMessage); // Log the error to the console
     } finally {
-      setLoading(false);
+      setIcarusLoading(false);
+    }
+  };
+
+  const handleOpenLaneButtonClick = () => {
+    if (!selectedFile) return;
+    setOpenLaneConfigDialogOpen(true);
+  };
+
+  const handleOpenLaneConfigSubmit = async (config: OpenLaneConfig) => {
+    if (!selectedFile) return;
+    setOpenLaneConfigDialogOpen(false);
+    setOpenlaneLoading(true);
+    setOpenlaneError(false);
+    setOpenlaneSuccess(false);
+
+    try {
+      await processFileOpenLane({
+        file_id: selectedFile.filename,
+        fcm_token: fcmToken,
+        openLaneConfig: config,
+      }).unwrap();
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An unknown error occurred during OpenLane processing';
+      setOpenlaneError(true);
+      console.error(errorMessage);
+    } finally {
+      setOpenlaneLoading(false);
     }
   };
 
@@ -133,7 +169,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleProcessFile('icarus')}
+            onClick={handleProcessIcarus}
             disabled={!selectedFile || icarusLoading}
             startIcon={<CheckCircleOutlineIcon />}
           >
@@ -142,7 +178,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleProcessFile('openlane')}
+            onClick={handleOpenLaneButtonClick}
             disabled={!selectedFile || openlaneLoading}
             startIcon={<CheckCircleOutlineIcon />}
           >
@@ -207,6 +243,13 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* OpenLane Configuration Form */}
+      <OpenLaneConfigForm
+        open={openLaneConfigDialogOpen}
+        onClose={() => setOpenLaneConfigDialogOpen(false)}
+        onSubmit={handleOpenLaneConfigSubmit}
+      />
     </>
   );
 }
