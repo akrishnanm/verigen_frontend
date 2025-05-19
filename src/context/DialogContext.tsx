@@ -1,14 +1,7 @@
 'use client';
 import React, { createContext, useContext, ReactNode } from 'react';
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Button,
-  Typography,
-} from '@mui/material';
 import useDialog from '@/hooks/useDialog';
+import LogSummaryDialog from '@/components/LogSummaryDialog';
 
 interface NotificationData {
   title: string;
@@ -32,19 +25,12 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       value={{ dialogOpen, notificationData, openDialog, closeDialog }}
     >
       {children}
-      <Dialog open={dialogOpen} onClose={closeDialog}>
-        <DialogTitle>{notificationData?.title}</DialogTitle>
-        <DialogContent>
-          <Typography component="pre" style={{ whiteSpace: 'pre-wrap' }}>
-            {notificationData?.body}
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <LogSummaryDialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        title={notificationData?.title || ''}
+        body={notificationData?.body || ''}
+      />
     </DialogContext.Provider>
   );
 };
