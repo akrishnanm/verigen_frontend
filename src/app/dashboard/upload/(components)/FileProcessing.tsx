@@ -67,7 +67,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       } else if (notificationData.body.includes('OpenLane flow - error')) {
         setOpenlaneSuccess(false);
         setOpenlaneError(true);
-      } else if (notificationData.body.includes('OpenLane flow: success')) {
+      } else if (notificationData.body.includes('OpenLane flow - complted')) {
         setOpenlaneSuccess(true);
         setOpenlaneError(false);
       }
