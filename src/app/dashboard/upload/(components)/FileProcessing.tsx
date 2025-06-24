@@ -18,18 +18,19 @@ import {
 } from './upload.api';
 import useFcmToken from '@/hooks/useFcmToken'; // Import the useFcmToken hook
 import OpenLaneConfigForm from './OpenLaneConfigForm';
- 
- interface OpenLaneConfig {
-   clock_port: string;
-   clock_period: number;
-   die_area: string;
-   pin_configuration: {
-     N: string[];
-     S: string[];
-     E: string[];
-     W: string[];
-   };
- }
+import CheckpointProgressBar from '@/components/CheckpointProgressBar';
+
+interface OpenLaneConfig {
+  clock_port: string;
+  clock_period: number;
+  die_area: string;
+  pin_configuration: {
+    N: string[];
+    S: string[];
+    E: string[];
+    W: string[];
+  };
+}
 
 interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
@@ -46,7 +47,8 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
 
   const [processFileIcarus] = useProcessFileMutation();
   const [processFileOpenLane] = useProcessOpenLaneFileMutation();
-  const [openLaneConfigDialogOpen, setOpenLaneConfigDialogOpen] = useState(false);
+  const [openLaneConfigDialogOpen, setOpenLaneConfigDialogOpen] =
+    useState(false);
   // Use the useFcmToken hook
   const {
     token: fcmToken,
@@ -85,8 +87,8 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   const handleProcessIcarus = async () => {
     if (!selectedFile) return;
     setIcarusLoading(true);
-     setIcarusError(false);
-     setIcarusSuccess(false);
+    setIcarusError(false);
+    setIcarusSuccess(false);
 
     try {
       await processFileIcarus({
@@ -102,36 +104,36 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       console.error(errorMessage); // Log the error to the console
     } finally {
       setIcarusLoading(false);
-     }
-   };
- 
-   const handleOpenLaneButtonClick = () => {
-     if (!selectedFile) return;
-     setOpenLaneConfigDialogOpen(true);
-   };
- 
-   const handleOpenLaneConfigSubmit = async (config: OpenLaneConfig) => {
-     if (!selectedFile) return;
-     setOpenLaneConfigDialogOpen(false);
-     setOpenlaneLoading(true);
-     setOpenlaneError(false);
-     setOpenlaneSuccess(false);
- 
-     try {
-       await processFileOpenLane({
-         file_id: selectedFile.filename,
-         fcm_token: fcmToken,
-         openLaneConfig: config,
-       }).unwrap();
-     } catch (error: unknown) {
-       const errorMessage =
-         error instanceof Error
-           ? error.message
-           : 'An unknown error occurred during OpenLane processing';
-       setOpenlaneError(true);
-       console.error(errorMessage);
-     } finally {
-       setOpenlaneLoading(false);
+    }
+  };
+
+  const handleOpenLaneButtonClick = () => {
+    if (!selectedFile) return;
+    setOpenLaneConfigDialogOpen(true);
+  };
+
+  const handleOpenLaneConfigSubmit = async (config: OpenLaneConfig) => {
+    if (!selectedFile) return;
+    setOpenLaneConfigDialogOpen(false);
+    setOpenlaneLoading(true);
+    setOpenlaneError(false);
+    setOpenlaneSuccess(false);
+
+    try {
+      await processFileOpenLane({
+        file_id: selectedFile.filename,
+        fcm_token: fcmToken,
+        openLaneConfig: config,
+      }).unwrap();
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An unknown error occurred during OpenLane processing';
+      setOpenlaneError(true);
+      console.error(errorMessage);
+    } finally {
+      setOpenlaneLoading(false);
     }
   };
 
@@ -202,9 +204,42 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
 
         {/* OpenLane Status */}
         <Box sx={{ my: 2 }}>
-          <Typography variant="subtitle2">OpenLane Status</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {openlaneLoading && <LinearProgress sx={{ flex: 1 }} />}
+          <Typography variant="subtitle2" sx={{ mb: 2 }}>
+            OpenLane Status
+          </Typography>
+          <Box sx={{ height: 120, width: '100%' }}>
+            <CheckpointProgressBar
+              progress={
+                openlaneSuccess
+                  ? 100
+                  : openlaneLoading
+                    ? 50
+                    : openlaneError
+                      ? 0
+                      : 0
+              }
+              checkpoints={[
+                {
+                  id: 0,
+                  name: <span style={{ fontSize: '1.4rem' }}>🚀</span>,
+                  value: 0,
+                },
+                { id: 1, name: 'Synthesis', value: 12.5 },
+                { id: 2, name: 'Floorplaning', value: 25 },
+                { id: 3, name: 'Placement', value: 37.5 },
+                { id: 4, name: 'CTS', value: 50 },
+                { id: 5, name: 'Routing', value: 62.5 },
+                { id: 6, name: 'Tapeout', value: 75 },
+                { id: 7, name: 'Signoff', value: 87.5 },
+                {
+                  id: 8,
+                  name: <span style={{ fontSize: '1.4rem' }}>🏁</span>,
+                  value: 100,
+                },
+              ]}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
             {openlaneSuccess && <CheckCircleOutlineIcon color="success" />}
             {openlaneError && <ErrorOutlineIcon color="error" />}
           </Box>
@@ -245,10 +280,10 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
 
       {/* OpenLane Configuration Form */}
       <OpenLaneConfigForm
-         open={openLaneConfigDialogOpen}
-         onClose={() => setOpenLaneConfigDialogOpen(false)}
-         onSubmit={handleOpenLaneConfigSubmit}
-       />
+        open={openLaneConfigDialogOpen}
+        onClose={() => setOpenLaneConfigDialogOpen(false)}
+        onSubmit={handleOpenLaneConfigSubmit}
+      />
     </>
   );
 }
