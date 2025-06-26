@@ -36,6 +36,19 @@ interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
 }
 
+// Define OpenLane checkpoints with their corresponding progress values
+const OPENLANE_CHECKPOINTS = [
+  { id: 0, name: '🚀', value: 0, keyword: 'started' },
+  { id: 1, name: 'Synthesis', value: 12.5, keyword: 'yosys-synthesis.log' },
+  { id: 2, name: 'Floorplaning', value: 25, keyword: 'openroad-floorplan.log' },
+  { id: 3, name: 'Placement', value: 37.5, keyword: 'openroad-detailedplacement' },
+  { id: 4, name: 'CTS', value: 50, keyword: 'openroad-cts.log' },
+  { id: 5, name: 'Routing', value: 62.5, keyword: 'openroad-detailedrouting.log' },
+  { id: 6, name: 'Tapeout', value: 75, keyword: 'magic-spiceextraction.log' },
+  { id: 7, name: 'Signoff', value: 87.5, keyword: 'netgen-lvs.log' },
+  { id: 8, name: '🏁', value: 100, keyword: 'completed' },
+];
+
 export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   const [icarusError, setIcarusError] = useState<boolean>(false);
   const [openlaneError, setOpenlaneError] = useState<boolean>(false);
@@ -44,6 +57,8 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
   const [icarusLoading, setIcarusLoading] = useState(false);
   const [openlaneLoading, setOpenlaneLoading] = useState(false);
   const [downloadEnabled, setDownloadEnabled] = useState(false);
+  const [currentCheckpointProgress, setCurrentCheckpointProgress] =
+    useState<number>(0);
 
   const [processFileIcarus] = useProcessFileMutation();
   const [processFileOpenLane] = useProcessOpenLaneFileMutation();
@@ -60,6 +75,8 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
 
   useEffect(() => {
     if (notificationData) {
+      const notificationBody = notificationData.body.toLowerCase();
+
       if (notificationData.body.includes('Status - error')) {
         setIcarusError(true);
         setIcarusSuccess(false);
@@ -69,9 +86,25 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
       } else if (notificationData.body.includes('OpenLane flow - error')) {
         setOpenlaneSuccess(false);
         setOpenlaneError(true);
+        setCurrentCheckpointProgress(0);
       } else if (notificationData.body.includes('OpenLane flow - complted')) {
         setOpenlaneSuccess(true);
         setOpenlaneError(false);
+        setCurrentCheckpointProgress(100);
+      } else {
+        // Check for specific OpenLane checkpoint updates in the notification
+        OPENLANE_CHECKPOINTS.forEach((checkpoint) => {
+          if (notificationBody.includes(checkpoint.keyword)) {
+            setCurrentCheckpointProgress(checkpoint.value);
+            setOpenlaneLoading(true);
+
+            // If we've reached the final checkpoint, mark as success
+            if (checkpoint.value === 100) {
+              setOpenlaneSuccess(true);
+              setOpenlaneLoading(false);
+            }
+          }
+        });
       }
     }
   }, [notificationData]);
@@ -212,31 +245,23 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
               progress={
                 openlaneSuccess
                   ? 100
-                  : openlaneLoading
-                    ? 50
-                    : openlaneError
-                      ? 0
-                      : 0
+                  : openlaneError
+                    ? 0
+                    : currentCheckpointProgress
               }
-              checkpoints={[
-                {
-                  id: 0,
-                  name: <span style={{ fontSize: '1.4rem' }}>🚀</span>,
-                  value: 0,
-                },
-                { id: 1, name: 'Synthesis', value: 12.5 },
-                { id: 2, name: 'Floorplaning', value: 25 },
-                { id: 3, name: 'Placement', value: 37.5 },
-                { id: 4, name: 'CTS', value: 50 },
-                { id: 5, name: 'Routing', value: 62.5 },
-                { id: 6, name: 'Tapeout', value: 75 },
-                { id: 7, name: 'Signoff', value: 87.5 },
-                {
-                  id: 8,
-                  name: <span style={{ fontSize: '1.4rem' }}>🏁</span>,
-                  value: 100,
-                },
-              ]}
+              checkpoints={OPENLANE_CHECKPOINTS.map((checkpoint) => ({
+                id: checkpoint.id,
+                name:
+                  typeof checkpoint.name === 'string' &&
+                  (checkpoint.name === '🚀' || checkpoint.name === '🏁') ? (
+                    <span style={{ fontSize: '1.4rem' }}>
+                      {checkpoint.name}
+                    </span>
+                  ) : (
+                    checkpoint.name
+                  ),
+                value: checkpoint.value,
+              }))}
             />
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
