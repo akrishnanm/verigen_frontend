@@ -36,14 +36,32 @@ interface FileProcessingProps {
   selectedFile: { filename: string; url: string } | null;
 }
 
+interface ApiError {
+  data?: {
+    detail?: string;
+  };
+  status?: number;
+  message?: string;
+}
+
 // Define OpenLane checkpoints with their corresponding progress values
 const OPENLANE_CHECKPOINTS = [
   { id: 0, name: '🚀', value: 0, keyword: 'started' },
   { id: 1, name: 'Synthesis', value: 12.5, keyword: 'yosys-synthesis.log' },
   { id: 2, name: 'Floorplaning', value: 25, keyword: 'openroad-floorplan.log' },
-  { id: 3, name: 'Placement', value: 37.5, keyword: 'openroad-detailedplacement' },
+  {
+    id: 3,
+    name: 'Placement',
+    value: 37.5,
+    keyword: 'openroad-detailedplacement.log',
+  },
   { id: 4, name: 'CTS', value: 50, keyword: 'openroad-cts.log' },
-  { id: 5, name: 'Routing', value: 62.5, keyword: 'openroad-detailedrouting.log' },
+  {
+    id: 5,
+    name: 'Routing',
+    value: 62.5,
+    keyword: 'openroad-detailedrouting.log',
+  },
   { id: 6, name: 'Tapeout', value: 75, keyword: 'magic-spiceextraction.log' },
   { id: 7, name: 'Signoff', value: 87.5, keyword: 'netgen-lvs.log' },
   { id: 8, name: '🏁', value: 100, keyword: 'completed' },
@@ -87,7 +105,7 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         setOpenlaneSuccess(false);
         setOpenlaneError(true);
         setCurrentCheckpointProgress(0);
-      } else if (notificationData.body.includes('OpenLane flow - complted')) {
+      } else if (notificationData.body.includes('Log Summary')) {
         setOpenlaneSuccess(true);
         setOpenlaneError(false);
         setCurrentCheckpointProgress(100);
@@ -129,12 +147,18 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         fcm_token: fcmToken, // Include the FCM token in the API call
       }).unwrap();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'An unknown error occurred during file processing';
+      console.error('Icarus processing error:', error);
       setIcarusError(true);
-      console.error(errorMessage); // Log the error to the console
+
+      // Log more detailed error information
+      const apiError = error as ApiError;
+      if (apiError?.data?.detail) {
+        console.error('Server error detail:', apiError.data.detail);
+      } else if (apiError?.status) {
+        console.error('HTTP status:', apiError.status);
+      } else if (apiError?.message) {
+        console.error('Error message:', apiError.message);
+      }
     } finally {
       setIcarusLoading(false);
     }
@@ -159,12 +183,20 @@ export default function FileProcessing({ selectedFile }: FileProcessingProps) {
         openLaneConfig: config,
       }).unwrap();
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'An unknown error occurred during OpenLane processing';
+      console.error('OpenLane processing error:', error);
       setOpenlaneError(true);
-      console.error(errorMessage);
+
+      // Log more detailed error information
+      const apiError = error as ApiError;
+      if (apiError?.data?.detail) {
+        console.error('Server error detail:', apiError.data.detail);
+      } else if (apiError?.status) {
+        console.error('HTTP status:', apiError.status);
+      } else if (apiError?.message) {
+        console.error('Error message:', apiError.message);
+      } else {
+        console.error('Unknown error structure:', error);
+      }
     } finally {
       setOpenlaneLoading(false);
     }

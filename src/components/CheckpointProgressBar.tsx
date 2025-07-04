@@ -26,53 +26,55 @@ const StyledLinearProgress = styled(LinearProgress)(({ theme }) => ({
   },
 }));
 
-const CheckpointDot = styled(Box)<{ active: boolean; completed: boolean }>(
-  ({ theme, active, completed }) => ({
+const CheckpointDot = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'active' && prop !== 'completed',
+})<{ active: boolean; completed: boolean }>(({ theme, active, completed }) => ({
+  position: 'absolute',
+  top: -16,
+  width: 24,
+  height: 24,
+  borderRadius: '50%',
+  backgroundColor: completed
+    ? '#4caf50'
+    : active
+      ? '#667eea'
+      : theme.palette.grey[200],
+  border: `3px solid ${theme.palette.background.paper}`,
+  transform: 'translateX(-50%)',
+  zIndex: 3,
+  cursor: 'pointer',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  boxShadow:
+    completed || active
+      ? '0 4px 12px rgba(102, 126, 234, 0.4)'
+      : '0 2px 4px rgba(0,0,0,0.1)',
+
+  '&::before': {
+    content: '""',
     position: 'absolute',
-    top: -16,
-    width: 24,
-    height: 24,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: completed ? 12 : active ? 8 : 6,
+    height: completed ? 12 : active ? 8 : 6,
     borderRadius: '50%',
     backgroundColor: completed
-      ? '#4caf50'
+      ? '#ffffff'
       : active
-        ? '#667eea'
-        : theme.palette.grey[200],
-    border: `3px solid ${theme.palette.background.paper}`,
-    transform: 'translateX(-50%)',
-    zIndex: 3,
-    cursor: 'pointer',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow:
-      completed || active
-        ? '0 4px 12px rgba(102, 126, 234, 0.4)'
-        : '0 2px 4px rgba(0,0,0,0.1)',
+        ? 'rgba(255,255,255,0.9)'
+        : theme.palette.grey[400],
+    transition: 'all 0.3s ease',
+  },
 
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: completed ? 12 : active ? 8 : 6,
-      height: completed ? 12 : active ? 8 : 6,
-      borderRadius: '50%',
-      backgroundColor: completed
-        ? '#ffffff'
-        : active
-          ? 'rgba(255,255,255,0.9)'
-          : theme.palette.grey[400],
-      transition: 'all 0.3s ease',
-    },
+  '&:hover': {
+    transform: 'translateX(-50%) scale(1.1)',
+    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
+  },
+}));
 
-    '&:hover': {
-      transform: 'translateX(-50%) scale(1.1)',
-      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.5)',
-    },
-  })
-);
-
-const CheckpointLabel = styled(Typography)<{
+const CheckpointLabel = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== 'active' && prop !== 'completed',
+})<{
   active: boolean;
   completed: boolean;
 }>(({ theme, active, completed }) => ({
@@ -97,33 +99,34 @@ const CheckpointLabel = styled(Typography)<{
   },
 }));
 
-const PercentageLabel = styled(Box)((
+const PercentageLabel = styled(Box)(() =>
   // { theme }  // Uncomment this line if you want to use theme properties
-) => ({
-  position: 'absolute',
-  right: 0,
-  top: -32,
-  padding: '4px 12px',
-  borderRadius: 16,
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  color: 'white',
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-  transition: 'all 0.3s ease',
-
-  '&::after': {
-    content: '""',
+  ({
     position: 'absolute',
-    bottom: -4,
-    right: 12,
-    width: 0,
-    height: 0,
-    borderLeft: '4px solid transparent',
-    borderRight: '4px solid transparent',
-    borderTop: '4px solid #764ba2',
-  },
-}));
+    right: 0,
+    top: -32,
+    padding: '4px 12px',
+    borderRadius: 16,
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    color: 'white',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+    transition: 'all 0.3s ease',
+
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: -4,
+      right: 12,
+      width: 0,
+      height: 0,
+      borderLeft: '4px solid transparent',
+      borderRight: '4px solid transparent',
+      borderTop: '4px solid #764ba2',
+    },
+  })
+);
 
 const StyledProgressContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
