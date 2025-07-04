@@ -13,16 +13,29 @@ interface DialogContextProps {
   notificationData: NotificationData | null;
   openDialog: (data: NotificationData) => void;
   closeDialog: () => void;
+  updateNotificationData: (data: NotificationData) => void;
 }
 
 const DialogContext = createContext<DialogContextProps | undefined>(undefined);
 
 export const DialogProvider = ({ children }: { children: ReactNode }) => {
-  const { dialogOpen, notificationData, openDialog, closeDialog } = useDialog();
+  const {
+    dialogOpen,
+    notificationData,
+    openDialog,
+    closeDialog,
+    updateNotificationData,
+  } = useDialog();
 
   return (
     <DialogContext.Provider
-      value={{ dialogOpen, notificationData, openDialog, closeDialog }}
+      value={{
+        dialogOpen,
+        notificationData,
+        openDialog,
+        closeDialog,
+        updateNotificationData,
+      }}
     >
       {children}
       <LogSummaryDialog

@@ -36,8 +36,13 @@ const useFcmToken = () => {
   const [token, setToken] = useState<string | null>(null); // State to store the FCM token.
   const retryLoadToken = useRef(0); // Ref to keep track of retry attempts.
   const isLoading = useRef(false); // Ref to keep track if a token fetch is currently in progress.
-  const { dialogOpen, notificationData, openDialog, closeDialog } =
-    useDialogContext(); // Use the useDialogContext hook
+  const {
+    dialogOpen,
+    notificationData,
+    openDialog,
+    closeDialog,
+    updateNotificationData,
+  } = useDialogContext(); // Use the useDialogContext hook
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null); // State to store the download URL.
 
   const loadToken = async () => {
@@ -87,15 +92,18 @@ const useFcmToken = () => {
     body = body.replace(/\/usr\/src\/app\/local_files\//g, '').trim();
 
     // Extract and format log messages
-    const logMessages = body.split('\n').map(line => {
+    const logMessages = body
+      .split('\n')
+      .map((line) => {
         const match = line.match(/(.*): (.*)/);
         if (match) {
           return `${match[1]}: ${match[2]}`;
         }
         return line;
-    }).join('\n');
+      })
+      .join('\n');
     console.log('Notification data cleaned:', { title, body: logMessages });
-    
+
     // Extract URL from the notification body
     const urlMatch = body.match(/URL: (https?:\/\/[^\s]+)/);
     const url = urlMatch ? urlMatch[1] : null;
@@ -111,7 +119,7 @@ const useFcmToken = () => {
     if ('Notification' in window) {
       loadToken();
     }
-  },);
+  });
 
   useEffect(() => {
     const setupListener = async () => {
@@ -132,7 +140,20 @@ const useFcmToken = () => {
           payload.notification?.body || 'This is a new message'
         );
 
-        openDialog({ title, body });
+        // Determine if this notification should show a dialog
+        const shouldShowDialog =
+          body.includes('Status - error') || // Icarus error
+          body.includes('Status - success') || // Icarus success
+          body.includes('OpenLane flow - error') || // OpenLane error with logs
+          body.includes('Log Summary'); // OpenLane completion with logs
+
+        // Always update notification data for progress tracking
+        if (shouldShowDialog) {
+          openDialog({ title, body });
+        } else {
+          // For checkpoint progress notifications, just update the data without opening dialog
+          updateNotificationData({ title, body });
+        }
 
         // --------------------------------------------
         // Disable this if you only want toast notifications.
@@ -169,7 +190,7 @@ const useFcmToken = () => {
 
     // Step 11: Cleanup the listener when the component unmounts.
     return () => unsubscribe?.();
-  }, [token, router]);
+  }, [token, router, openDialog, closeDialog, updateNotificationData]);
 
   return {
     dialogOpen,
