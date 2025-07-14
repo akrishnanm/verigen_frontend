@@ -26,12 +26,13 @@ export const uploadApi = baseApi.injectEndpoints({
       query: ({ file_id, fcm_token, openLaneConfig }) => ({
         url: '/api/Openlane_2/',
         method: 'POST',
-        body: { 
-          file_id, 
+        body: {
+          file_id,
           fcm_token,
           clock_port: openLaneConfig?.clock_port,
           clock_period: openLaneConfig?.clock_period,
           die_area: openLaneConfig?.die_area,
+          fp_core_util: openLaneConfig?.fp_core_util,
           pin_configuration: openLaneConfig?.pin_configuration,
         },
       }),
