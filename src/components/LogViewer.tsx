@@ -210,7 +210,9 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
             const isSuccess =
               item.toLowerCase().includes('success') ||
               item.toLowerCase().includes('completed') ||
-              item.toLowerCase().includes('no violations');
+              item.toLowerCase().includes('no critical errors') ||
+              item.toLowerCase().includes('no congestion') ||
+              item.toLowerCase().includes('no timing violations');
 
             let textColor = theme.palette.text.primary;
             if (isWarning) textColor = theme.palette.warning.main;
