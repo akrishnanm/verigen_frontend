@@ -205,13 +205,18 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
             if (!item.trim()) return null;
 
             // Try to identify if this is a warning or error message
-            const isWarning = item.toLowerCase().includes('warning');
+            const isWarning =
+              item.toLowerCase().includes('warning') ||
+              item.toLowerCase().includes('failure');
             const isError = item.toLowerCase().includes('error');
             const isSuccess =
               item.toLowerCase().includes('success') ||
               item.toLowerCase().includes('completed') ||
               item.toLowerCase().includes('no critical errors') ||
               item.toLowerCase().includes('no congestion') ||
+              item.toLowerCase().includes('no severe timing violations') ||
+              item.toLowerCase().includes('no utilization/congestion') ||
+              item.toLowerCase().includes('no drc/lvs') ||
               item.toLowerCase().includes('no timing violations');
 
             let textColor = theme.palette.text.primary;
