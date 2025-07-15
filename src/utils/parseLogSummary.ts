@@ -36,83 +36,85 @@ export const parseLogSummary = (
 
     // Handle common JSON parsing issues
     try {
-      // Convert single quotes to double quotes for valid JSON
-      jsonStr = jsonStr.replace(/'/g, '"');
+      console.log('Original JSON string:', jsonStr);
 
-      // Try to parse as is first
-      const parsed = JSON.parse(jsonStr);
+      // Strategy 1: Try a completely custom parser for Python-dict-like format
+      try {
+        const result: Record<string, string> = {};
 
-      // Process parsed content to handle escaped newlines
-      Object.keys(parsed).forEach((key) => {
-        if (typeof parsed[key] === 'string') {
-          // Replace escaped newlines with actual newlines
-          parsed[key] = parsed[key].replace(/\\n/g, '\n');
+        // Remove outer braces and split by top-level commas
+        const content = jsonStr.replace(/^{|}$/g, '').trim();
 
-          // Mark truncated content
-          if (parsed[key].endsWith('...') || parsed[key].endsWith('…')) {
-            parsed[key] = parsed[key] + ' [Content truncated]';
-          }
-        }
-      });
+        // Split on commas that are followed by a space and single quote (key boundary)
+        // This regex looks for: , 'key': pattern
+        const parts = content.split(/,\s*(?='[^']+':)/);
 
-      return parsed;
-    } catch (parseError) {
-      console.log('Initial JSON parse failed, attempting cleanup:', parseError);
-
-      // Manual parsing approach
-      const result: Record<string, string> = {};
-
-      // Use regex to find each key-value pair in format "key": "value"
-      // This handles cases where values might be truncated or contain nested quotes
-      const keyValueRegex = /"([^"]+)":\s*"((?:\\"|[^"])*?)(?:"|$)/g;
-      let regexMatch;
-
-      while ((regexMatch = keyValueRegex.exec(jsonStr)) !== null) {
-        const [, key, value] = regexMatch;
-        if (key) {
-          // Replace escaped newlines
-          result[key] = value.replace(/\\n/g, '\n');
-        }
-      }
-
-      // If we couldn't extract any data with the regex, return an error
-      if (Object.keys(result).length === 0) {
-        // Try a more manual approach by splitting on commas, helpful for malformed JSON
-        const pairs = jsonStr.replace(/[{}]/g, '').split(/,(?="\w)/);
-        for (const pair of pairs) {
-          const colonIndex = pair.indexOf(':');
+        for (const part of parts) {
+          const colonIndex = part.indexOf(':');
           if (colonIndex > 0) {
-            let key = pair.substring(0, colonIndex).trim();
-            let value = pair.substring(colonIndex + 1).trim();
+            // Extract key
+            let key = part.substring(0, colonIndex).trim();
+            key = key.replace(/^'|'$/g, ''); // Remove surrounding single quotes
 
-            // Remove quotes if they exist
-            key = key.replace(/^"|"$/g, '');
+            // Extract value
+            let value = part.substring(colonIndex + 1).trim();
 
-            // Handle value quotes more carefully
-            if (value.startsWith('"') && value.endsWith('"')) {
-              value = value.substring(1, value.length - 1);
-            } else if (value.startsWith('"')) {
-              value = value.substring(1);
+            // Handle different value formats
+            if (value.startsWith("'") && value.endsWith("'")) {
+              // Single-quoted value
+              value = value.slice(1, -1);
+            } else if (value.startsWith('"') && value.endsWith('"')) {
+              // Double-quoted value
+              value = value.slice(1, -1);
+            } else if (value.startsWith("'") && !value.endsWith("'")) {
+              // Incomplete single-quoted value (truncated)
+              value = value.slice(1);
             }
 
-            // Replace escaped newlines
-            value = value.replace(/\\n/g, '\n');
+            // Handle escaped characters
+            value = value.replace(/\\'/g, "'").replace(/\\n/g, '\n');
 
             result[key] = value;
           }
         }
 
-        if (Object.keys(result).length === 0) {
-          return {
-            error: 'Failed to parse malformed JSON: ' + String(parseError),
-          };
-        }
-      }
+        // console.log('Successfully parsed with custom parser:', result);
+        return result;
+      } catch {
+        // console.log('Custom parser failed, trying JSON conversion');
 
-      return result;
+        // Strategy 2: JSON conversion approach
+        // Convert single-quoted keys to double-quoted keys
+        jsonStr = jsonStr.replace(/'([^']+)':/g, '"$1":');
+
+        // Convert single-quoted values to double-quoted values, handling escapes
+        jsonStr = jsonStr.replace(/\\'/g, 'ESCAPED_SINGLE_QUOTE'); // Temporarily replace escaped quotes
+        jsonStr = jsonStr.replace(/:\s*'([^']*)'/g, ': "$1"');
+        jsonStr = jsonStr.replace(/ESCAPED_SINGLE_QUOTE/g, "'"); // Restore escaped quotes
+
+        // Handle escaped double quotes
+        jsonStr = jsonStr.replace(/\\"/g, '"');
+
+        // Fix truncation issues
+        jsonStr = jsonStr.replace(/,\s*$/, ''); // Remove trailing comma
+        if (!jsonStr.trim().endsWith('}')) {
+          jsonStr += '}';
+        }
+
+        // console.log('After JSON conversion:', jsonStr);
+
+        const parsed = JSON.parse(jsonStr);
+        // console.log('Successfully parsed with JSON conversion:', parsed);
+        return parsed;
+      }
+    } catch (parseError) {
+      // console.log('Initial JSON parse failed:', parseError);
+      return {
+        error: 'Failed to parse log summary: ' + String(parseError),
+      };
     }
   } catch (error) {
-    console.error('Error parsing log summary:', error);
+    // console.error('Error parsing log summary:', error);
     return {
       error:
         'Failed to parse log summary: ' +

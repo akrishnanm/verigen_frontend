@@ -11,7 +11,7 @@ import {
   Grid,
   useTheme,
   alpha,
-  Button
+  Button,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ErrorIcon from '@mui/icons-material/ErrorOutline';
@@ -104,12 +104,6 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
       );
     }
 
-    // Check if this is the full content from a directly input log (from user query)
-    const isDirectLogContent =
-      content.includes('[GRT-0097]') ||
-      content.includes('VSRC_LOC_FILES') ||
-      (content.includes('*') && content.length > 100);
-
     // Handle content that might be truncated
     const isTruncated =
       content.includes('[Content truncated]') ||
@@ -121,21 +115,43 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
       content = content.replace(' [Content truncated]', '');
     }
 
-    // Split by bullet points
-    const contentWithBullets = content.split('*').filter((item) => item.trim());
+    // Helper function to render text with bold formatting
+    const renderTextWithBold = (text: string) => {
+      const parts = text.split(/(\*\*.*?\*\*)/g);
+      return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          // Remove the ** markers and render as bold
+          const boldText = part.slice(2, -2);
+          return (
+            <strong key={index} style={{ fontWeight: 600 }}>
+              {boldText}
+            </strong>
+          );
+        }
+        return part;
+      });
+    };
+
+    // Split by bullet points more intelligently - only split on * that start a new line/point
+    // This regex splits on * that are at the beginning or after newline/whitespace
+    const bulletPattern = /(?:^|\n)\s*\*\s*/;
+    const contentWithBullets = content
+      .split(bulletPattern)
+      .filter((item) => item.trim());
+
     const itemId = `${logName}-content`;
     const isExpanded = expandedItems[itemId] || false;
 
     if (contentWithBullets.length <= 1) {
-      // If there's no bullet points, just show the plain text
+      // If there's no bullet points, just show the plain text with bold formatting
       return (
         <Typography
           variant="body2"
           sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
         >
-          {isDirectLogContent && !isExpanded && content.length > 300 ? (
+          {!isExpanded && content.length > 300 ? (
             <>
-              {content.substring(0, 300)}...
+              {renderTextWithBold(content.substring(0, 300))}...
               <Button
                 onClick={() => toggleItemExpansion(itemId)}
                 sx={{ ml: 1, textTransform: 'none' }}
@@ -147,8 +163,8 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
             </>
           ) : (
             <>
-              {content}
-              {isDirectLogContent && content.length > 300 && (
+              {renderTextWithBold(content)}
+              {content.length > 300 && (
                 <Button
                   onClick={() => toggleItemExpansion(itemId)}
                   sx={{ ml: 1, textTransform: 'none' }}
@@ -163,7 +179,7 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
       );
     }
 
-    // For content with bullet points
+    // For content with bullet points - display each item with bold formatting support
     return (
       <Box>
         {isTruncated && (
@@ -179,9 +195,9 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
         <Box
           component="ul"
           sx={{
-            pl: isDirectLogContent ? 0 : 2,
+            pl: 2,
             m: 0,
-            listStyleType: isDirectLogContent ? 'none' : 'disc',
+            listStyleType: 'disc',
           }}
         >
           {contentWithBullets.map((item, index) => {
@@ -219,12 +235,13 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
                   bgcolor: alpha(textColor, 0.05),
                   borderLeft: `4px solid ${alpha(textColor, 0.3)}`,
                   position: 'relative',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
                 }}
               >
-                {isDirectLogContent && isLongItem && !isItemExpanded ? (
+                {isLongItem && !isItemExpanded ? (
                   <>
-                    <strong>{item.split(':')[0]}</strong>:{' '}
-                    {item.substring(item.indexOf(':') + 1, 100).trim()}...
+                    {renderTextWithBold(item.substring(0, 100).trim())}...
                     <Button
                       onClick={() => toggleItemExpansion(itemUniqueId)}
                       size="small"
@@ -234,18 +251,9 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
                     </Button>
                   </>
                 ) : (
-                  <Box>
-                    {isDirectLogContent ? (
-                      <Box sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                        {item.split(':')[0]}:
-                      </Box>
-                    ) : null}
-                    <Box>
-                      {isDirectLogContent
-                        ? item.substring(item.indexOf(':') + 1).trim()
-                        : item.trim()}
-                    </Box>
-                    {isDirectLogContent && isLongItem && (
+                  <>
+                    {renderTextWithBold(item.trim())}
+                    {isLongItem && (
                       <Button
                         onClick={() => toggleItemExpansion(itemUniqueId)}
                         size="small"
@@ -254,7 +262,7 @@ const LogViewer: React.FC<LogViewerProps> = ({ logData }) => {
                         Show less
                       </Button>
                     )}
-                  </Box>
+                  </>
                 )}
               </Typography>
             );
